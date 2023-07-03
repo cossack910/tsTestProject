@@ -1,7 +1,7 @@
 # typescript
 
 ```
-cd /var/www/typescript/src
+cd /src
 ```
 
 ## コンパイル用の設定ファイルを作成
