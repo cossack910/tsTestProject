@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  tstestproject:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/var/www/tsTestProject
+    tty: true
+    ports:
+      - 5555:80
+    container_name: tstestproject
