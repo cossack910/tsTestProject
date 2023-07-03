@@ -1,17 +1,29 @@
 # typescript
+
 ```
 cd /var/www/typescript/src
 ```
 
 ## コンパイル用の設定ファイルを作成
+
 ```
 tsc –-init
 ```
-## javascript変換
+
+## javascript 変換
+
 ```
-tsc
+docker exec -it tstestproject tsc
 ```
-## WSLのhtmlを開く 
+
+## WSL の html を開く
+
 ```
 explorer.exe index.html
-```# tsTestProject
+```
+
+## ウォッチモード
+
+```
+docker exec -it tstestproject tsc --watch
+```
