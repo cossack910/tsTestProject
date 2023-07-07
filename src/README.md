@@ -2,4 +2,4 @@
 
 | No  | title                   |
 | --- | ----------------------- |
-| #1  | event.preventDefault(); |
+| [#1]  | event.preventDefault(); |
