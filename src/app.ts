@@ -46,12 +46,42 @@ class ProjectInput {
     this.attach();
   }
 
+  //ユーザーの入力受け取り
+  private gatherUserInput(): [string, string, number] | void {
+    const entererdTitle = this.titleInputElemnt.value;
+    const entererdDescription = this.descriptionInputElemnt.value;
+    const entererdMandayInput = this.mandayInputElemnt.value;
+    //バリデーション
+    if (
+      entererdTitle.trim().length == 0 ||
+      entererdDescription.trim().length == 0 ||
+      entererdMandayInput.trim().length == 0
+    ) {
+      alert("入力間違い");
+      return;
+    } else {
+      return [entererdTitle, entererdDescription, +entererdMandayInput];
+    }
+  }
+  //フォームクリア
+  private clearInputs(): void {
+    this.titleInputElemnt.value = "";
+    this.descriptionInputElemnt.value = "";
+    this.mandayInputElemnt.value = "";
+  }
+
   @autobind
   private submitHandler(event: Event) {
     event.preventDefault();
-    console.log(this.titleInputElemnt.value);
+    const userInput = this.gatherUserInput();
+    //jsでタプルの判定は出来ないため配列かどうかを確かめる
+    if (Array.isArray(userInput)) {
+      const [title, desc, manday] = userInput;
+    }
+    this.clearInputs();
   }
 
+  //submitボタンにイベントハンドラ追加
   private configure() {
     this.element.addEventListener("submit", this.submitHandler);
   }

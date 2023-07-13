@@ -19,7 +19,7 @@ docker exec -it tstestproject tsc
 ## WSL の html を開く
 
 ```
-explorer.exe index.html
+explorer.exe file://wsl.localhost/Ubuntu/var/www/tsTestProject/index.html
 ```
 
 ## ウォッチモード
