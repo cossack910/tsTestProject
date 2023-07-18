@@ -1,6 +1,6 @@
 //プロジェクトの状態管理
 class ProjectState {
-  private listners: any[] = [];
+  private listeners: any[] = [];
   private projects: any[] = [];
   private static instance: ProjectState;
 
@@ -14,8 +14,8 @@ class ProjectState {
     return this.instance;
   }
 
-  addListner(listnerFn: Function) {
-    this.listners.push(listnerFn);
+  addListener(listenerFn: Function) {
+    this.listeners.push(listenerFn);
   }
 
   addProject(title: string, description: string, manday: number) {
@@ -26,8 +26,8 @@ class ProjectState {
       manday: manday,
     };
     this.projects.push(newProject);
-    for (const listnerFn of this.listners) {
-      listnerFn(this.projects.slice());
+    for (const listenerFn of this.listeners) {
+      listenerFn(this.projects.slice());
     }
   }
 }
@@ -44,7 +44,7 @@ interface Validatable {
   max?: number;
 }
 
-function validate(validatableInput: Validatable): boolean {
+function validate(validatableInput: Validatable) {
   let isValid = true;
   if (validatableInput.required) {
     isValid = isValid && validatableInput.value.toString().trim().length !== 0;
@@ -73,6 +73,13 @@ function validate(validatableInput: Validatable): boolean {
     isValid = isValid && validatableInput.value >= validatableInput.min;
   }
 
+  if (
+    validatableInput.max != null &&
+    typeof validatableInput.value === "number"
+  ) {
+    isValid = isValid && validatableInput.value <= validatableInput.max;
+  }
+
   return isValid;
 }
 
@@ -98,21 +105,21 @@ class ProjectList {
   templateElement: HTMLTemplateElement;
   hostElement: HTMLDivElement;
   element: HTMLElement;
-  assignedProject: any[];
+  assignedProjects: any[];
 
   constructor(private type: "active" | "finished") {
     this.templateElement = document.getElementById(
       "project-list"
     )! as HTMLTemplateElement;
     this.hostElement = document.getElementById("app")! as HTMLDivElement;
-    this.assignedProject = [];
+    this.assignedProjects = [];
 
     const importNode = document.importNode(this.templateElement.content, true);
     this.element = importNode.firstElementChild as HTMLElement;
     this.element.id = `${this.type}-projects`;
 
-    projectState.addListner((projects: any[]) => {
-      this.assignedProject = projects;
+    projectState.addListener((projects: any[]) => {
+      this.assignedProjects = projects;
       this.renderProjects();
     });
 
@@ -124,7 +131,7 @@ class ProjectList {
     const listEl = document.getElementById(
       `${this.type}-projects-list`
     )! as HTMLUListElement;
-    for (const prjItem of this.assignedProject) {
+    for (const prjItem of this.assignedProjects) {
       const listItem = document.createElement("li");
       listItem.textContent = prjItem.title;
       listEl.appendChild(listItem);
@@ -177,21 +184,21 @@ class ProjectInput {
 
   //ユーザーの入力受け取り
   private getUserInput(): [string, string, number] | void {
-    const entererdTitle = this.titleInputElemnt.value;
-    const entererdDescription = this.descriptionInputElemnt.value;
-    const entererdMandayInput = this.mandayInputElemnt.value;
+    const enteredTitle = this.titleInputElemnt.value;
+    const enteredDescription = this.descriptionInputElemnt.value;
+    const enteredManday = this.mandayInputElemnt.value;
     //バリデーション
     const titleValidatable: Validatable = {
-      value: entererdTitle,
+      value: enteredTitle,
       required: true,
     };
     const descriptionValidatable: Validatable = {
-      value: entererdDescription,
+      value: enteredDescription,
       required: true,
       minLength: 5,
     };
     const mandayValidatable: Validatable = {
-      value: +entererdMandayInput,
+      value: +enteredManday,
       required: true,
       min: 1,
       max: 1000,
@@ -204,12 +211,12 @@ class ProjectInput {
       alert("入力間違い");
       return;
     } else {
-      return [entererdTitle, entererdDescription, +entererdMandayInput];
+      return [enteredTitle, enteredDescription, +enteredManday];
     }
   }
 
   //フォームクリア
-  private clearInputs(): void {
+  private clearInputs() {
     this.titleInputElemnt.value = "";
     this.descriptionInputElemnt.value = "";
     this.mandayInputElemnt.value = "";
