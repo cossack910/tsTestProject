@@ -1,3 +1,39 @@
+//プロジェクトの状態管理
+class ProjectState {
+  private listners: any[] = [];
+  private projects: any[] = [];
+  private static instance: ProjectState;
+
+  private constructor() {}
+
+  static getInstance() {
+    if (this.instance) {
+      return this.instance;
+    }
+    this.instance = new ProjectState();
+    return this.instance;
+  }
+
+  addListner(listnerFn: Function) {
+    this.listners.push(listnerFn);
+  }
+
+  addProject(title: string, description: string, manday: number) {
+    const newProject = {
+      id: Math.random().toString(),
+      title: title,
+      description: description,
+      manday: manday,
+    };
+    this.projects.push(newProject);
+    for (const listnerFn of this.listners) {
+      listnerFn(this.projects.slice());
+    }
+  }
+}
+
+const projectState = ProjectState.getInstance();
+
 //Validation
 interface Validatable {
   value: string | number;
@@ -62,16 +98,37 @@ class ProjectList {
   templateElement: HTMLTemplateElement;
   hostElement: HTMLDivElement;
   element: HTMLElement;
+  assignedProject: any[];
+
   constructor(private type: "active" | "finished") {
     this.templateElement = document.getElementById(
       "project-list"
     )! as HTMLTemplateElement;
     this.hostElement = document.getElementById("app")! as HTMLDivElement;
+    this.assignedProject = [];
+
     const importNode = document.importNode(this.templateElement.content, true);
     this.element = importNode.firstElementChild as HTMLElement;
     this.element.id = `${this.type}-projects`;
+
+    projectState.addListner((projects: any[]) => {
+      this.assignedProject = projects;
+      this.renderProjects();
+    });
+
     this.attach();
     this.renderContent();
+  }
+
+  private renderProjects() {
+    const listEl = document.getElementById(
+      `${this.type}-projects-list`
+    )! as HTMLUListElement;
+    for (const prjItem of this.assignedProject) {
+      const listItem = document.createElement("li");
+      listItem.textContent = prjItem.title;
+      listEl.appendChild(listItem);
+    }
   }
 
   private renderContent() {
@@ -119,7 +176,7 @@ class ProjectInput {
   }
 
   //ユーザーの入力受け取り
-  private gatherUserInput(): [string, string, number] | void {
+  private getUserInput(): [string, string, number] | void {
     const entererdTitle = this.titleInputElemnt.value;
     const entererdDescription = this.descriptionInputElemnt.value;
     const entererdMandayInput = this.mandayInputElemnt.value;
@@ -161,10 +218,11 @@ class ProjectInput {
   @autobind
   private submitHandler(event: Event) {
     event.preventDefault();
-    const userInput = this.gatherUserInput();
+    const userInput = this.getUserInput();
     //jsでタプルの判定は出来ないため配列かどうかを確かめる
     if (Array.isArray(userInput)) {
       const [title, desc, manday] = userInput;
+      projectState.addProject(title, desc, manday);
     }
     this.clearInputs();
   }

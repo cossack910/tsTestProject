@@ -5,6 +5,36 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+//プロジェクトの状態管理
+class ProjectState {
+    constructor() {
+        this.listners = [];
+        this.projects = [];
+    }
+    static getInstance() {
+        if (this.instance) {
+            return this.instance;
+        }
+        this.instance = new ProjectState();
+        return this.instance;
+    }
+    addListner(listnerFn) {
+        this.listners.push(listnerFn);
+    }
+    addProject(title, description, manday) {
+        const newProject = {
+            id: Math.random().toString(),
+            title: title,
+            description: description,
+            manday: manday,
+        };
+        this.projects.push(newProject);
+        for (const listnerFn of this.listners) {
+            listnerFn(this.projects.slice());
+        }
+    }
+}
+const projectState = ProjectState.getInstance();
 function validate(validatableInput) {
     let isValid = true;
     if (validatableInput.required) {
@@ -44,11 +74,24 @@ class ProjectList {
         this.type = type;
         this.templateElement = document.getElementById("project-list");
         this.hostElement = document.getElementById("app");
+        this.assignedProject = [];
         const importNode = document.importNode(this.templateElement.content, true);
         this.element = importNode.firstElementChild;
         this.element.id = `${this.type}-projects`;
+        projectState.addListner((projects) => {
+            this.assignedProject = projects;
+            this.renderProjects();
+        });
         this.attach();
         this.renderContent();
+    }
+    renderProjects() {
+        const listEl = document.getElementById(`${this.type}-projects-list`);
+        for (const prjItem of this.assignedProject) {
+            const listItem = document.createElement("li");
+            listItem.textContent = prjItem.title;
+            listEl.appendChild(listItem);
+        }
     }
     renderContent() {
         const listId = `${this.type}-projects-list`;
@@ -75,7 +118,7 @@ class ProjectInput {
         this.attach();
     }
     //ユーザーの入力受け取り
-    gatherUserInput() {
+    getUserInput() {
         const entererdTitle = this.titleInputElemnt.value;
         const entererdDescription = this.descriptionInputElemnt.value;
         const entererdMandayInput = this.mandayInputElemnt.value;
@@ -113,10 +156,11 @@ class ProjectInput {
     }
     submitHandler(event) {
         event.preventDefault();
-        const userInput = this.gatherUserInput();
+        const userInput = this.getUserInput();
         //jsでタプルの判定は出来ないため配列かどうかを確かめる
         if (Array.isArray(userInput)) {
             const [title, desc, manday] = userInput;
+            projectState.addProject(title, desc, manday);
         }
         this.clearInputs();
     }
