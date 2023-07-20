@@ -5,10 +5,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-//プロジェクトの状態管理
+var ProjectStatus;
+(function (ProjectStatus) {
+    ProjectStatus[ProjectStatus["Active"] = 0] = "Active";
+    ProjectStatus[ProjectStatus["Finished"] = 1] = "Finished";
+})(ProjectStatus || (ProjectStatus = {}));
+class Project {
+    constructor(id, title, description, manday, status) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.manday = manday;
+        this.status = status;
+    }
+}
 class ProjectState {
     constructor() {
-        this.listners = [];
+        this.listeners = [];
         this.projects = [];
     }
     static getInstance() {
@@ -18,19 +31,14 @@ class ProjectState {
         this.instance = new ProjectState();
         return this.instance;
     }
-    addListner(listnerFn) {
-        this.listners.push(listnerFn);
+    addListener(listenerFn) {
+        this.listeners.push(listenerFn);
     }
     addProject(title, description, manday) {
-        const newProject = {
-            id: Math.random().toString(),
-            title: title,
-            description: description,
-            manday: manday,
-        };
+        const newProject = new Project(Math.random().toString(), title, description, manday, ProjectStatus.Active);
         this.projects.push(newProject);
-        for (const listnerFn of this.listners) {
-            listnerFn(this.projects.slice());
+        for (const listenerFn of this.listeners) {
+            listenerFn(this.projects.slice());
         }
     }
 }
@@ -54,6 +62,10 @@ function validate(validatableInput) {
         typeof validatableInput.value === "number") {
         isValid = isValid && validatableInput.value >= validatableInput.min;
     }
+    if (validatableInput.max != null &&
+        typeof validatableInput.value === "number") {
+        isValid = isValid && validatableInput.value <= validatableInput.max;
+    }
     return isValid;
 }
 //デコレータ
@@ -74,12 +86,12 @@ class ProjectList {
         this.type = type;
         this.templateElement = document.getElementById("project-list");
         this.hostElement = document.getElementById("app");
-        this.assignedProject = [];
+        this.assignedProjects = [];
         const importNode = document.importNode(this.templateElement.content, true);
         this.element = importNode.firstElementChild;
         this.element.id = `${this.type}-projects`;
-        projectState.addListner((projects) => {
-            this.assignedProject = projects;
+        projectState.addListener((projects) => {
+            this.assignedProjects = projects;
             this.renderProjects();
         });
         this.attach();
@@ -87,7 +99,7 @@ class ProjectList {
     }
     renderProjects() {
         const listEl = document.getElementById(`${this.type}-projects-list`);
-        for (const prjItem of this.assignedProject) {
+        for (const prjItem of this.assignedProjects) {
             const listItem = document.createElement("li");
             listItem.textContent = prjItem.title;
             listEl.appendChild(listItem);
@@ -119,21 +131,21 @@ class ProjectInput {
     }
     //ユーザーの入力受け取り
     getUserInput() {
-        const entererdTitle = this.titleInputElemnt.value;
-        const entererdDescription = this.descriptionInputElemnt.value;
-        const entererdMandayInput = this.mandayInputElemnt.value;
+        const enteredTitle = this.titleInputElemnt.value;
+        const enteredDescription = this.descriptionInputElemnt.value;
+        const enteredManday = this.mandayInputElemnt.value;
         //バリデーション
         const titleValidatable = {
-            value: entererdTitle,
+            value: enteredTitle,
             required: true,
         };
         const descriptionValidatable = {
-            value: entererdDescription,
+            value: enteredDescription,
             required: true,
             minLength: 5,
         };
         const mandayValidatable = {
-            value: +entererdMandayInput,
+            value: +enteredManday,
             required: true,
             min: 1,
             max: 1000,
@@ -145,7 +157,7 @@ class ProjectInput {
             return;
         }
         else {
-            return [entererdTitle, entererdDescription, +entererdMandayInput];
+            return [enteredTitle, enteredDescription, +enteredManday];
         }
     }
     //フォームクリア
