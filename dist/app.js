@@ -5,6 +5,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+// Project Type
 var ProjectStatus;
 (function (ProjectStatus) {
     ProjectStatus[ProjectStatus["Active"] = 0] = "Active";
@@ -32,7 +33,6 @@ class ProjectState extends State {
         super();
         this.projects = [];
     }
-    //シングルトン
     static getInstance() {
         if (this.instance) {
             return this.instance;
@@ -43,6 +43,16 @@ class ProjectState extends State {
     addProject(title, description, manday) {
         const newProject = new Project(Math.random().toString(), title, description, manday, ProjectStatus.Active);
         this.projects.push(newProject);
+        this.updateListeners();
+    }
+    moveProject(projectId, newStatus) {
+        const project = this.projects.find((prj) => prj.id === projectId);
+        if (project && project.status !== newStatus) {
+            project.status = newStatus;
+            this.updateListeners();
+        }
+    }
+    updateListeners() {
         for (const listenerFn of this.listeners) {
             listenerFn(this.projects.slice());
         }
@@ -62,7 +72,7 @@ function validate(validatableInput) {
     if (validatableInput.maxLength != null &&
         typeof validatableInput.value === "string") {
         isValid =
-            isValid && validatableInput.value.length >= validatableInput.maxLength;
+            isValid && validatableInput.value.length <= validatableInput.maxLength;
     }
     if (validatableInput.min != null &&
         typeof validatableInput.value === "number") {
@@ -74,8 +84,8 @@ function validate(validatableInput) {
     }
     return isValid;
 }
-//デコレータ
-function autobind(target, methosName, descriptor) {
+// autobind decorator
+function autobind(_, _2, descriptor) {
     const originalMethod = descriptor.value;
     const adjDescriptor = {
         configurable: true,
@@ -86,24 +96,24 @@ function autobind(target, methosName, descriptor) {
     };
     return adjDescriptor;
 }
-//Component Class
+// Component Class
 class Component {
-    constructor(templateId, hostElementId, insertAtstart, newElementId) {
+    constructor(templateId, hostElementId, insertAtStart, newElementId) {
         this.templateElement = document.getElementById(templateId);
         this.hostElement = document.getElementById(hostElementId);
-        const importNode = document.importNode(this.templateElement.content, true);
-        this.element = importNode.firstElementChild;
+        const importedNode = document.importNode(this.templateElement.content, true);
+        this.element = importedNode.firstElementChild;
         if (newElementId) {
             this.element.id = newElementId;
         }
-        this.attach(insertAtstart);
+        this.attach(insertAtStart);
     }
     attach(insertAtBeginning) {
         this.hostElement.insertAdjacentElement(insertAtBeginning ? "afterbegin" : "beforeend", this.element);
     }
 }
+// ProjectItem Class
 class ProjectItem extends Component {
-    //getter
     get manday() {
         if (this.project.manday < 20) {
             return this.project.manday.toString() + "人日";
@@ -119,7 +129,8 @@ class ProjectItem extends Component {
         this.renderContent();
     }
     dragStartHandler(event) {
-        console.log(event);
+        event.dataTransfer.setData("text/plain", this.project.id);
+        event.dataTransfer.effectAllowed = "move";
     }
     dragEndHandler(_) {
         console.log("Drag終了");
@@ -137,7 +148,7 @@ class ProjectItem extends Component {
 __decorate([
     autobind
 ], ProjectItem.prototype, "dragStartHandler", null);
-//"project-list"
+// ProjectList Class
 class ProjectList extends Component {
     constructor(type) {
         super("project-list", "app", false, `${type}-projects`);
@@ -146,23 +157,31 @@ class ProjectList extends Component {
         this.configure();
         this.renderContent();
     }
-    dragOverHandler(_) {
-        const listEL = this.element.querySelector("ul");
-        listEL.classList.add("droppable");
+    dragOverHandler(event) {
+        if (event.dataTransfer && event.dataTransfer.types[0] === "text/plain") {
+            event.preventDefault();
+            const listEl = this.element.querySelector("ul");
+            listEl.classList.add("droppable");
+        }
     }
-    dropHandler(_) { }
-    dragLeaveHandler(_) { }
+    dropHandler(event) {
+        const prjId = event.dataTransfer.getData("text/plain");
+        projectState.moveProject(prjId, this.type === "active" ? ProjectStatus.Active : ProjectStatus.Finished);
+    }
+    dragLeaveHandler(_) {
+        const listEl = this.element.querySelector("ul");
+        listEl.classList.remove("droppable");
+    }
     configure() {
         this.element.addEventListener("dragover", this.dragOverHandler);
         this.element.addEventListener("drop", this.dropHandler);
         this.element.addEventListener("dragleave", this.dragLeaveHandler);
         projectState.addListener((projects) => {
-            //enumフィルタリング
             const relevantProjects = projects.filter((prj) => {
                 if (this.type === "active") {
                     return prj.status === ProjectStatus.Active;
                 }
-                prj.status === ProjectStatus.Finished;
+                return prj.status === ProjectStatus.Finished;
             });
             this.assignedProjects = relevantProjects;
             this.renderProjects();
@@ -172,7 +191,7 @@ class ProjectList extends Component {
         const listId = `${this.type}-projects-list`;
         this.element.querySelector("ul").id = listId;
         this.element.querySelector("h2").textContent =
-            this.type === "active" ? "実行中" : "完了";
+            this.type === "active" ? "実行中プロジェクト" : "完了プロジェクト";
     }
     renderProjects() {
         const listEl = document.getElementById(`${this.type}-projects-list`);
@@ -185,26 +204,29 @@ class ProjectList extends Component {
 __decorate([
     autobind
 ], ProjectList.prototype, "dragOverHandler", null);
+__decorate([
+    autobind
+], ProjectList.prototype, "dropHandler", null);
+__decorate([
+    autobind
+], ProjectList.prototype, "dragLeaveHandler", null);
+// ProjectInput Class
 class ProjectInput extends Component {
     constructor() {
         super("project-input", "app", true, "user-input");
-        this.templateElement = document.getElementById("project-input");
-        this.titleInputElemnt = this.element.querySelector("#title");
-        this.descriptionInputElemnt = this.element.querySelector("#description");
-        this.mandayInputElemnt = this.element.querySelector("#manday");
+        this.titleInputElement = this.element.querySelector("#title");
+        this.descriptionInputElement = this.element.querySelector("#description");
+        this.mandayInputElement = this.element.querySelector("#manday");
         this.configure();
     }
-    //submitボタンにイベントハンドラ追加
     configure() {
         this.element.addEventListener("submit", this.submitHandler);
     }
     renderContent() { }
-    //ユーザーの入力受け取り
-    getUserInput() {
-        const enteredTitle = this.titleInputElemnt.value;
-        const enteredDescription = this.descriptionInputElemnt.value;
-        const enteredManday = this.mandayInputElemnt.value;
-        //バリデーション
+    gatherUserInput() {
+        const enteredTitle = this.titleInputElement.value;
+        const enteredDescription = this.descriptionInputElement.value;
+        const enteredManday = this.mandayInputElement.value;
         const titleValidatable = {
             value: enteredTitle,
             required: true,
@@ -220,36 +242,34 @@ class ProjectInput extends Component {
             min: 1,
             max: 1000,
         };
-        if (!validate(titleValidatable) &&
-            !validate(descriptionValidatable) &&
+        if (!validate(titleValidatable) ||
+            !validate(descriptionValidatable) ||
             !validate(mandayValidatable)) {
-            alert("入力間違い");
+            alert("入力値が正しくありません。再度お試しください。");
             return;
         }
         else {
             return [enteredTitle, enteredDescription, +enteredManday];
         }
     }
-    //フォームクリア
     clearInputs() {
-        this.titleInputElemnt.value = "";
-        this.descriptionInputElemnt.value = "";
-        this.mandayInputElemnt.value = "";
+        this.titleInputElement.value = "";
+        this.descriptionInputElement.value = "";
+        this.mandayInputElement.value = "";
     }
     submitHandler(event) {
         event.preventDefault();
-        const userInput = this.getUserInput();
-        //jsでタプルの判定は出来ないため配列かどうかを確かめる
+        const userInput = this.gatherUserInput();
         if (Array.isArray(userInput)) {
             const [title, desc, manday] = userInput;
             projectState.addProject(title, desc, manday);
+            this.clearInputs();
         }
-        this.clearInputs();
     }
 }
 __decorate([
     autobind
 ], ProjectInput.prototype, "submitHandler", null);
-const prInput = new ProjectInput();
-const activePrList = new ProjectList("active");
-const finishedPrList = new ProjectList("finished");
+const prjInput = new ProjectInput();
+const activePrjList = new ProjectList("active");
+const finishedPrjList = new ProjectList("finished");
