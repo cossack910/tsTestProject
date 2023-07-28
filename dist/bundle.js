@@ -135,6 +135,9 @@ var App;
     App.Component = Component;
 })(App || (App = {}));
 /// <reference path="./base-component.ts" />
+/// <reference path="../decoraters/autobind.ts" />
+/// <reference path="../util/validation.ts" />
+/// <reference path="../state/project.ts" />
 var App;
 (function (App) {
     // ProjectInput Class
@@ -200,6 +203,10 @@ var App;
     App.ProjectInput = ProjectInput;
 })(App || (App = {}));
 /// <reference path="./base-component.ts" />
+/// <reference path="../decoraters/autobind.ts" />
+/// <reference path="../state/project.ts" />
+/// <reference path="../models/project.ts" />
+/// <reference path="../models/drag-drop.ts" />
 var App;
 (function (App) {
     // ProjectList Class
@@ -275,11 +282,14 @@ var App;
 /// <reference path="./components/project-list.ts" />
 var App;
 (function (App) {
-    const prjInput = new App.ProjectInput();
-    const activePrjList = new App.ProjectList("active");
-    const finishedPrjList = new App.ProjectList("finished");
+    new App.ProjectInput();
+    new App.ProjectList("active");
+    new App.ProjectList("finished");
 })(App || (App = {}));
 /// <reference path="./base-component.ts" />
+/// <reference path="../decoraters/autobind.ts" />
+/// <reference path="../models/project.ts" />
+/// <reference path="../models/drag-drop.ts" />
 var App;
 (function (App) {
     // ProjectItem Class
