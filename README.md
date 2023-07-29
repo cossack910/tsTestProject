@@ -16,6 +16,14 @@ tsc –-init
 docker exec -it tstestproject tsc
 ```
 
+##LiveSrever で開く
+
+```
+CTRL + L
+CTRL + O
+http://localhost:5500/tsTestProject/
+```
+
 ## WSL の html を開く
 
 ```
