@@ -16,7 +16,7 @@ tsc –-init
 docker exec -it tstestproject tsc
 ```
 
-##LiveSrever で開く
+## LiveSrever で開く
 
 ```
 CTRL + L
