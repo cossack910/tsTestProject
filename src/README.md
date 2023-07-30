@@ -10,3 +10,4 @@
 | [#6](https://github.com/cossack910/tsTestProject/issues/6) | tsconfig.json outFIle オプション      | typescript |
 | [#7](https://github.com/cossack910/tsTestProject/issues/7) | ES モジュールがローカルだと機能しない | tips       |
 | [#8](https://github.com/cossack910/tsTestProject/issues/8) | export default                        | javacript  |
+| [#9](https://github.com/cossack910/tsTestProject/issues/9) | ES モジュール                         | javacript  |
