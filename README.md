@@ -35,3 +35,9 @@ explorer.exe file://wsl.localhost/Ubuntu/var/www/tsTestProject/index.html
 ```
 docker exec -it tstestproject tsc --watch
 ```
+
+## webpack 実行
+
+```
+docker exec -it tstestproject npm run build
+```
