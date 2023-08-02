@@ -9,6 +9,11 @@ module.exports = {
     publicPath: "/dist",
   },
   devServer: {
+    hot: true,
+    open: true,
+    port: 12700,
+    host: "0.0.0.0",
+    historyApiFallback: true,
     static: [
       {
         directory: path.resolve(__dirname, "dist"),

@@ -9,6 +9,6 @@ services:
       - .:/var/www/tsTestProject
     tty: true
     command: npm start
-    #ports:
-    #  - 5555:80
+    ports:
+      - 8080:8080
     container_name: tstestproject

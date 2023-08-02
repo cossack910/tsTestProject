@@ -41,3 +41,9 @@ docker exec -it tstestproject tsc --watch
 ```
 docker exec -it tstestproject npm run build
 ```
+
+## Webpack Dev Server を Docker コンテナで実行 localhost:12700
+
+```
+docker run -p 12700:8080 tstestproject
+```
