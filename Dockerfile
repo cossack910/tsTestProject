@@ -1,7 +1,9 @@
 FROM node:18.16.0-alpine
 WORKDIR /var/www/tsTestProject
+COPY package*.json ./
 RUN npm install -g typescript
 RUN npm install --save-dev webpack webpack-cli webpack-dev-server typescript ts-loader
-COPY package*.json ./
+# distフォルダクリーン用
+RUN npm install --save-dev clean-webpack-plugin
 COPY . .
 CMD ["npm", "run", "start"]
